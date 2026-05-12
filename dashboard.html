@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>My Dashboard</title>
+<style>
+  :root {
+    --bg: #050506;
+    --text-primary: #FAFAFA;
+    --text-secondary: #B8B6B0;
+    --text-tertiary: #76746E;
+    --success: #6BE3A4;
+    --warning: #F2C063;
+    --danger: #FF6B6B;
+    --card-bg: rgba(255, 255, 255, 0.04);
+    --card-border: rgba(255, 255, 255, 0.06);
+    --radius-lg: 16px;
+    --radius-md: 12px;
+    --radius-sm: 8px;
+    --shadow-card: 0 12px 40px rgba(0, 0, 0, 0.45);
+    --font-sans: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    font-size: 15px;
+    line-height: 1.5;
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Two soft radial washes that slowly drift */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: -10%;
+    background:
+      radial-gradient(circle at 82% 14%, rgba(224, 118, 88, 0.16), transparent 40%),
+      radial-gradient(circle at 18% 90%, rgba(180, 180, 200, 0.06), transparent 45%);
+    filter: blur(40px);
+    z-index: -2;
+    pointer-events: none;
+    animation: drift 36s ease-in-out infinite alternate;
+  }
+
+  @keyframes drift {
+    0%   { transform: translate3d(0, 0, 0) scale(1); }
+    50%  { transform: translate3d(2%, -1.5%, 0) scale(1.04); }
+    100% { transform: translate3d(-1.5%, 2%, 0) scale(1.02); }
+  }
+
+  /* Film-grain overlay, 3x3 px tile of a single faint white dot */
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='3' height='3'><rect width='3' height='3' fill='black' fill-opacity='0'/><rect x='0' y='0' width='1' height='1' fill='white' fill-opacity='0.014'/></svg>");
+    background-size: 3px 3px;
+    z-index: -1;
+    pointer-events: none;
+    mix-blend-mode: screen;
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 32px 24px;
+  }
+
+  header.container { padding-bottom: 8px; }
+
+  h1.page-title {
+    margin: 0;
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    background: linear-gradient(180deg, #FFFFFF 0%, #B8B6B0 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  main.container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding-top: 20px;
+    padding-bottom: 120px;
+  }
+
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    backdrop-filter: blur(24px) saturate(1.2);
+    -webkit-backdrop-filter: blur(24px) saturate(1.2);
+    box-shadow: var(--shadow-card);
+  }
+
+  /* Stub placeholders so empty sections render an empty card during Phase 1 */
+  main.container > section:empty {
+    background: var(--card-bg);
+    border: 1px dashed var(--card-border);
+    border-radius: var(--radius-lg);
+    min-height: 64px;
+    opacity: 0.45;
+  }
+
+  /* Settings gear, top-right */
+  #settings-gear {
+    position: fixed;
+    top: 18px;
+    right: 18px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid var(--card-border);
+    background: var(--card-bg);
+    color: var(--text-secondary);
+    font-size: 16px;
+    cursor: pointer;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    transition: transform 0.15s ease, color 0.15s ease, background 0.15s ease;
+    z-index: 10;
+  }
+  #settings-gear:hover {
+    color: var(--text-primary);
+    transform: translateY(-1px) rotate(20deg);
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  /* Chat toggle button — visual placeholder for Phase 1, wired in Phase 6 */
+  #chat-toggle {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 12px 18px;
+    border-radius: 999px;
+    border: 1px solid var(--card-border);
+    background: var(--card-bg);
+    color: var(--text-secondary);
+    font-family: inherit;
+    font-size: 14px;
+    cursor: pointer;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: var(--shadow-card);
+    z-index: 10;
+    opacity: 0.6;
+  }
+
+  #chat-panel { display: none; }
+  #modal-root { position: relative; z-index: 100; }
+
+  @media (max-width: 600px) {
+    .container { padding: 24px 16px; }
+    h1.page-title { font-size: 24px; }
+    main.container { gap: 16px; padding-bottom: 100px; }
+    .card { padding: 16px; }
+    #settings-gear { top: 12px; right: 12px; }
+    #chat-toggle { bottom: 14px; right: 14px; }
+  }
+</style>
+</head>
+<body>
+  <header class="container">
+    <h1 class="page-title">My Dashboard</h1>
+  </header>
+
+  <main class="container">
+    <section id="goal-ticker"></section>
+    <section id="day-ring"></section>
+    <section id="ai-coaching-banner"></section>
+    <section id="todo-today"></section>
+    <section id="todo-tomorrow"></section>
+    <section id="time-log"></section>
+    <section id="fitness"></section>
+    <section id="mental-health"></section>
+  </main>
+
+  <button id="chat-toggle" type="button" aria-label="Open coach">💬 Coach</button>
+  <aside id="chat-panel" aria-hidden="true"></aside>
+  <button id="settings-gear" type="button" aria-label="Settings">⚙</button>
+  <div id="modal-root"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  const App = window.App = {};
+
+  // -------------------------------------------------------------------------
+  // App.config
+  // -------------------------------------------------------------------------
+  App.config = {
+    ANTHROPIC_API_KEY: 'PASTE_YOUR_KEY_HERE',
+    MODEL_FAST: 'claude-haiku-4-5',
+    MODEL_DEEP: 'claude-sonnet-4-5',
+    DAY_BOUNDARY_HOUR: 6,
+  };
+  App.config.hasApiKey = function () {
+    const k = App.config.ANTHROPIC_API_KEY;
+    return typeof k === 'string' && k.length > 0 && k !== 'PASTE_YOUR_KEY_HERE';
+  };
+
+  // -------------------------------------------------------------------------
+  // App.storage — typed localStorage wrapper
+  // -------------------------------------------------------------------------
+  App.storage = {
+    get(key, defaultValue) {
+      try {
+        const raw = localStorage.getItem(key);
+        if (raw === null) return defaultValue;
+        return JSON.parse(raw);
+      } catch (e) {
+        console.warn('[storage.get]', key, e);
+        return defaultValue;
+      }
+    },
+    set(key, value) {
+      try {
+        localStorage.setItem(key, JSON.stringify(value));
+        return true;
+      } catch (e) {
+        console.warn('[storage.set]', key, e);
+        return false;
+      }
+    },
+    remove(key) {
+      try { localStorage.removeItem(key); } catch (e) { /* ignore */ }
+    },
+    clearAll() {
+      try { localStorage.clear(); } catch (e) { /* ignore */ }
+    },
+  };
+
+  // -------------------------------------------------------------------------
+  // App.dates — 6AM-boundary active date logic
+  // -------------------------------------------------------------------------
+  App.dates = {
+    formatYMD(d) {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    },
+    today(now) {
+      return App.dates.formatYMD(now || new Date());
+    },
+    activeDate(now) {
+      const d = new Date(now || new Date());
+      if (d.getHours() < App.config.DAY_BOUNDARY_HOUR) {
+        d.setDate(d.getDate() - 1);
+      }
+      return App.dates.formatYMD(d);
+    },
+    daysBetween(a, b) {
+      const da = new Date(a + 'T00:00:00');
+      const db = new Date(b + 'T00:00:00');
+      return Math.round((db - da) / 86400000);
+    },
+    addDays(ymd, n) {
+      const d = new Date(ymd + 'T00:00:00');
+      d.setDate(d.getDate() + n);
+      return App.dates.formatYMD(d);
+    },
+  };
+
+  // -------------------------------------------------------------------------
+  // App.bus — tiny event bus
+  // -------------------------------------------------------------------------
+  App.bus = (function () {
+    const handlers = new Map();
+    return {
+      on(name, fn) {
+        if (!handlers.has(name)) handlers.set(name, new Set());
+        handlers.get(name).add(fn);
+      },
+      off(name, fn) {
+        const set = handlers.get(name);
+        if (set) set.delete(fn);
+      },
+      emit(name, payload) {
+        const set = handlers.get(name);
+        if (!set) return;
+        for (const fn of set) {
+          try { fn(payload); } catch (e) { console.warn('[bus]', name, e); }
+        }
+      },
+    };
+  })();
+
+  // -------------------------------------------------------------------------
+  // App.boot — DOMContentLoaded entry point. Each later phase appends its init.
+  // -------------------------------------------------------------------------
+  App.initFns = [];
+  App.registerInit = function (fn) { App.initFns.push(fn); };
+
+  App.boot = function () {
+    // Settings gear: reset-all-data confirm (Phase 3 will replace with a proper menu)
+    const gear = document.getElementById('settings-gear');
+    if (gear) {
+      gear.addEventListener('click', function () {
+        const ok = window.confirm('Reset all dashboard data? This cannot be undone.');
+        if (ok) {
+          App.storage.clearAll();
+          window.location.reload();
+        }
+      });
+    }
+
+    for (const fn of App.initFns) {
+      try { fn(); } catch (e) { console.error('[init]', e); }
+    }
+  };
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', App.boot);
+  } else {
+    App.boot();
+  }
+})();
+</script>
+</body>
+</html>
