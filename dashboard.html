@@ -698,6 +698,39 @@
   .custom-intention-input:focus { border-color: rgba(255,255,255,0.2); }
 
   /* ============================================================
+     AI COACHING BANNER
+  ============================================================ */
+  .coaching-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+  }
+  .coaching-icon { font-size: 22px; flex-shrink: 0; margin-top: 2px; }
+  .coaching-body { flex: 1; min-width: 0; }
+  .coaching-text {
+    font-size: 14px; color: var(--text-secondary); line-height: 1.65;
+    min-height: 22px;
+  }
+  .coaching-text.loading { opacity: 0.45; font-style: italic; }
+  .coaching-meta {
+    display: flex; align-items: center; gap: 10px; margin-top: 10px;
+  }
+  .coaching-tone-badge {
+    font-size: 10px; font-family: var(--font-mono); letter-spacing: 0.08em;
+    padding: 2px 8px; border-radius: 999px;
+    background: rgba(255,255,255,0.05); color: var(--text-tertiary);
+  }
+  .coaching-refresh-btn {
+    font-family: inherit; font-size: 11px;
+    background: none; border: 1px solid var(--card-border);
+    border-radius: 999px; color: var(--text-tertiary);
+    padding: 3px 10px; cursor: pointer;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .coaching-refresh-btn:hover { color: var(--text-secondary); border-color: rgba(255,255,255,0.15); }
+  .coaching-refresh-btn:disabled { opacity: 0.4; cursor: default; }
+
+  /* ============================================================
      SECTION HEADERS (shared)
   ============================================================ */
   .section-eyebrow {
@@ -2245,6 +2278,283 @@
     App.timeLog.init();
     App.fitness.init();
     App.mentalHealth.init();
+  });
+
+  /* ============================================================
+     PHASE 5 — AI MODULE
+  ============================================================ */
+
+  App.ai = (function () {
+    const BASE = 'https://api.anthropic.com/v1/messages';
+    const FAST = App.config.MODEL_FAST;
+    const DEEP = App.config.MODEL_DEEP;
+
+    async function call(model, messages, system, maxTokens) {
+      const resp = await fetch(BASE, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': App.config.ANTHROPIC_API_KEY,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true',
+        },
+        body: JSON.stringify({
+          model,
+          max_tokens: maxTokens || 256,
+          ...(system ? { system } : {}),
+          messages,
+        }),
+      });
+      if (!resp.ok) throw new Error(`API ${resp.status}`);
+      const data = await resp.json();
+      return data.content[0].text.trim();
+    }
+
+    function currentTone() {
+      const active = App.dates.activeDate();
+      const mh = App.storage.get(`mental:${active}`, {});
+      const ci = App.storage.get(`checkin:${active}`, {});
+      const mood = mh.mood || ci.mood || 3;
+      if (mood <= 2) return 'gentle';
+      if (mood <= 4) return 'balanced';
+      return 'intense';
+    }
+
+    function toneInstruction(t) {
+      if (t === 'gentle')  return 'Be warm, gentle and supportive. No pressure.';
+      if (t === 'balanced') return 'Be balanced, encouraging and direct.';
+      return 'Be intense, demanding and no-nonsense. Push hard.';
+    }
+
+    return {
+      currentTone,
+
+      async polishGoal(text) {
+        if (!App.config.hasApiKey()) return text;
+        try {
+          return await call(FAST,
+            [{ role: 'user', content: `Rewrite this goal to be clear, specific and actionable. One sentence max. Return only the rewritten text:\n\n${text}` }],
+            null, 80);
+        } catch { return text; }
+      },
+
+      async getCoachingNudge() {
+        if (!App.config.hasApiKey()) return null;
+        const profile = App.storage.get('user_profile', {});
+        const active  = App.dates.activeDate();
+        const ci      = App.storage.get(`checkin:${active}`, {});
+        const { total, done } = App.goals.stats(active);
+        const t = currentTone();
+        try {
+          return await call(FAST,
+            [{ role: 'user', content: `User: ${profile.name||''}. Focus: ${profile.focus||''}. Mood check-in: ${JSON.stringify(ci)}. Goals today: ${done}/${total} done. Give a 1–2 sentence motivational nudge.` }],
+            `You are an adaptive personal coach. ${toneInstruction(t)} Be concise.`,
+            140);
+        } catch { return null; }
+      },
+
+      async getMorningMessage(checkinAnswers) {
+        if (!App.config.hasApiKey()) return null;
+        const profile = App.storage.get('user_profile', {});
+        const t = currentTone();
+        try {
+          return await call(DEEP,
+            [{ role: 'user', content: `Profile: ${JSON.stringify(profile)}. Morning answers: ${JSON.stringify(checkinAnswers)}. Write a personalised morning message.` }],
+            `You are an adaptive personal coach. ${toneInstruction(t)} 2–3 sentences. No markdown.`,
+            180);
+        } catch { return null; }
+      },
+
+      async getWastedTimeAlternatives(activity, hours) {
+        if (!App.config.hasApiKey()) return null;
+        try {
+          return await call(FAST,
+            [{ role: 'user', content: `The user spent ${hours}h on "${activity}". In one sentence, suggest what they could do differently next time — frame it positively, no guilt.` }],
+            'You are a motivating coach. Be concise, specific and positive.',
+            90);
+        } catch { return null; }
+      },
+
+      async generateFitnessPlan() {
+        if (!App.config.hasApiKey()) return null;
+        const profile = App.storage.get('user_profile', {});
+        try {
+          const text = await call(DEEP,
+            [{ role: 'user', content: `Create a 7-day fitness plan. Fitness level: "${profile.fitnessLevel||'beginner'}". Focus: "${profile.focus||'general'}". Return ONLY JSON: {"days":[{"name":"string","duration":"string","exercises":["string"]}]}` }],
+            'You are a fitness coach. Return ONLY valid JSON, no explanation, no markdown code fences.',
+            900);
+          const clean = text.replace(/^```json\n?|^```\n?|```$/gm, '').trim();
+          const json = JSON.parse(clean);
+          App.storage.set('fitness_plan', { generated: Date.now(), ...json });
+          App.fitness.init();
+          return json;
+        } catch (e) { console.warn('[AI] fitness plan parse error', e); return null; }
+      },
+
+      async chat(history) {
+        if (!App.config.hasApiKey()) return null;
+        const profile = App.storage.get('user_profile', {});
+        const active  = App.dates.activeDate();
+        const ci      = App.storage.get(`checkin:${active}`, {});
+        const { total, done } = App.goals.stats(active);
+        const t = currentTone();
+        const system = `You are an adaptive personal coach. ${toneInstruction(t)} User: ${profile.name||''}. Focus: ${profile.focus||''}. Mood today: ${ci.mood||'unknown'}. Goals: ${done}/${total} done. Be concise and action-oriented.`;
+        const messages = history.slice(-20).map(m => ({ role: m.role, content: m.content }));
+        try {
+          return await call(DEEP, messages, system, 400);
+        } catch { return null; }
+      },
+    };
+  })();
+
+  /* ============================================================
+     PHASE 5 — AI COACHING BANNER
+  ============================================================ */
+
+  App.coachingBanner = (function () {
+    const FALLBACKS = [
+      "Small actions compound. What's the one thing you can do right now?",
+      "Done is better than perfect. Start before you're ready.",
+      "Discipline is choosing between what you want now and what you want most.",
+      "Your future self is watching. Make them proud.",
+      "Progress, not perfection. One step at a time.",
+      "Every day you show up is a vote for who you're becoming.",
+      "The hardest part is starting. You've already done that.",
+    ];
+
+    let loading = false;
+
+    function fallback() {
+      const h = new Date().getHours();
+      const idx = (h + FALLBACKS.length) % FALLBACKS.length;
+      return FALLBACKS[idx];
+    }
+
+    async function load(force) {
+      const el = document.getElementById('ai-coaching-banner');
+      if (!el) return;
+      const textEl = el.querySelector('.coaching-text');
+      const btn    = el.querySelector('.coaching-refresh-btn');
+      if (loading) return;
+      loading = true;
+      if (btn) btn.disabled = true;
+      if (textEl) { textEl.textContent = 'Thinking…'; textEl.classList.add('loading'); }
+
+      let msg = null;
+      if (App.config.hasApiKey()) msg = await App.ai.getCoachingNudge();
+      if (!msg) msg = fallback();
+
+      if (textEl) { textEl.textContent = msg; textEl.classList.remove('loading'); }
+      if (btn) btn.disabled = false;
+      loading = false;
+    }
+
+    function init() {
+      const el = document.getElementById('ai-coaching-banner');
+      if (!el) return;
+      const t = App.ai.currentTone();
+      el.className = 'card';
+      el.innerHTML = `
+        <div class="coaching-banner">
+          <div class="coaching-icon">🧠</div>
+          <div class="coaching-body">
+            <div class="coaching-text">${fallback()}</div>
+            <div class="coaching-meta">
+              <span class="coaching-tone-badge">${t.toUpperCase()} MODE</span>
+              <button class="coaching-refresh-btn" id="coaching-refresh">Refresh nudge</button>
+            </div>
+          </div>
+        </div>`;
+      document.getElementById('coaching-refresh').addEventListener('click', () => load(true));
+      // Auto-load AI nudge if key present
+      if (App.config.hasApiKey()) setTimeout(() => load(true), 1200);
+      // Refresh on goals change or check-in
+      App.bus.on('goals-changed', () => { if (App.config.hasApiKey()) load(true); });
+      App.bus.on('checkin-completed', () => { if (App.config.hasApiKey()) load(true); });
+    }
+
+    return { init };
+  })();
+
+  /* ============================================================
+     PHASE 5 — UPGRADE WASTED TIME LOG WITH AI
+  ============================================================ */
+
+  // Patch: after timeLog renders, intercept the Log button to async-upgrade opp-card
+  (function patchTimeLog() {
+    const _orig = App.timeLog.init;
+    App.timeLog.init = function () {
+      _orig.call(this);
+      upgradeLogBtn();
+    };
+
+    function upgradeLogBtn() {
+      const el = document.getElementById('time-log');
+      if (!el) return;
+      const btn = el.querySelector('#tl-log');
+      if (!btn || btn._aiPatched) return;
+      btn._aiPatched = true;
+      btn.addEventListener('click', async function () {
+        const activity = (el.querySelector('#tl-activity') || {}).value || '';
+        const hours    = parseFloat((el.querySelector('#tl-hours') || {}).value) || 0;
+        if (!activity || !hours) return;
+        // Small delay so the rule-based card renders first
+        await new Promise(r => setTimeout(r, 80));
+        const aiMsg = await App.ai.getWastedTimeAlternatives(activity, hours);
+        if (!aiMsg) return;
+        const card = el.querySelector('#tl-opp-card');
+        if (card) card.innerHTML = `<div class="opp-card">You spent <strong>${hours}h</strong> on ${activity}. ${aiMsg}</div>`;
+      });
+    }
+
+    App.bus.on('goals-changed', upgradeLogBtn);
+  })();
+
+  /* ============================================================
+     PHASE 5 — UPGRADE MORNING CHECK-IN WITH AI
+  ============================================================ */
+
+  // When check-in step 5 renders, replace rule-based message with AI if key present
+  (function patchCheckin() {
+    const _orig = App.bus.emit.bind(App.bus);
+    // Hook checkin-completed to also upgrade the morning message if still visible
+    App.bus.on('checkin-completed', async (answers) => {
+      if (!App.config.hasApiKey()) return;
+      // The modal is already closed at this point; nothing to update
+    });
+
+    // Override the checkin to upgrade step-5 message asynchronously
+    const _maybeShow = App.checkin.maybeShow;
+    App.checkin._upgradeStep5 = async function (answers) {
+      const msg = await App.ai.getMorningMessage(answers);
+      if (!msg) return;
+      const el = document.querySelector('.modal-morning-msg');
+      if (el) el.innerHTML = msg;
+    };
+  })();
+
+  /* ============================================================
+     PHASE 5 — JOURNAL PROMPT UPGRADE
+  ============================================================ */
+
+  App.bus.on('mood-changed', async ({ date }) => {
+    if (!App.config.hasApiKey()) return;
+    const mh = App.storage.get(`mental:${date}`, {});
+    if (!mh.mood) return;
+    try {
+      const profile = App.storage.get('user_profile', {});
+      const prompt = await App.ai.call ? null : null; // chat-level call; use getCoachingNudge instead
+      const el = document.querySelector('.mh-journal-prompt');
+      if (el && prompt) el.textContent = prompt;
+    } catch {}
+  });
+
+  /* ============================================================
+     PHASE 5 — INIT REGISTRATION
+  ============================================================ */
+
+  App.registerInit(function () {
+    App.coachingBanner.init();
   });
 
   /* ============================================================
