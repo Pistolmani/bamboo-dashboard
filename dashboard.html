@@ -564,7 +564,138 @@
     .ring-card { flex-direction: column; align-items: flex-start; }
     .ring-svg-wrap { width: 140px; height: 140px; }
     .ticker-label { display: none; }
+    .choice-grid { grid-template-columns: repeat(2, 1fr); }
+    .choice-grid.cols-3 { grid-template-columns: repeat(2, 1fr); }
+    .emoji-row { gap: 5px; }
+    .emoji-btn { font-size: 20px; padding: 10px 2px; }
+    .modal-card { padding: 24px 20px; border-radius: 16px; }
+    .modal-question { font-size: 18px; }
   }
+
+  /* ============================================================
+     MODAL SYSTEM (onboarding + morning check-in)
+  ============================================================ */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(5,5,6,0.88);
+    backdrop-filter: blur(16px) saturate(1.5);
+    -webkit-backdrop-filter: blur(16px) saturate(1.5);
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    animation: modal-fade-in 0.3s ease;
+  }
+  @keyframes modal-fade-in { from { opacity: 0; } to { opacity: 1; } }
+  .modal-card {
+    background: rgba(16,16,20,0.97);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px;
+    padding: 36px;
+    max-width: 500px;
+    width: 100%;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.65);
+  }
+  .modal-dots { display: flex; gap: 6px; margin-bottom: 28px; }
+  .modal-dot {
+    height: 6px;
+    border-radius: 3px;
+    background: rgba(255,255,255,0.12);
+    transition: background 0.3s, width 0.3s;
+    width: 6px;
+  }
+  .modal-dot.active { background: var(--text-primary); width: 20px; }
+  .modal-dot.done  { background: var(--success); width: 6px; }
+  .modal-question {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--text-primary);
+    margin: 0 0 8px;
+    line-height: 1.2;
+  }
+  .modal-sub { font-size: 14px; color: var(--text-tertiary); margin: 0 0 20px; }
+  .choice-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 10px; margin-bottom: 24px; }
+  .choice-grid.cols-3 { grid-template-columns: repeat(3,1fr); }
+  .choice-card {
+    background: rgba(255,255,255,0.04);
+    border: 1.5px solid rgba(255,255,255,0.07);
+    border-radius: var(--radius-md);
+    padding: 14px 10px;
+    cursor: pointer;
+    text-align: center;
+    transition: background 0.15s, border-color 0.15s, transform 0.1s;
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+  }
+  .choice-card:hover { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.15); transform: translateY(-1px); }
+  .choice-card.selected { background: rgba(107,227,164,0.08); border-color: var(--success); }
+  .choice-icon { font-size: 22px; line-height: 1; }
+  .choice-label { font-size: 12px; color: var(--text-secondary); font-weight: 500; line-height: 1.3; }
+  .choice-card.selected .choice-label { color: var(--success); }
+  .emoji-row { display: flex; gap: 8px; margin-bottom: 24px; }
+  .emoji-btn {
+    flex: 1;
+    background: rgba(255,255,255,0.04);
+    border: 1.5px solid rgba(255,255,255,0.07);
+    border-radius: var(--radius-sm);
+    padding: 12px 4px;
+    cursor: pointer;
+    font-size: 24px;
+    line-height: 1;
+    transition: background 0.15s, border-color 0.15s, transform 0.1s;
+  }
+  .emoji-btn:hover { transform: scale(1.1); border-color: rgba(255,255,255,0.15); }
+  .emoji-btn.selected { border-color: var(--success); background: rgba(107,227,164,0.08); }
+  .modal-text-input {
+    font-family: inherit; font-size: 15px;
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: var(--radius-sm); color: var(--text-primary);
+    padding: 12px 16px; width: 100%; outline: none; margin-bottom: 24px;
+    transition: border-color 0.15s;
+  }
+  .modal-text-input::placeholder { color: var(--text-tertiary); }
+  .modal-text-input:focus { border-color: rgba(255,255,255,0.25); }
+  .modal-nav { display: flex; gap: 10px; justify-content: flex-end; align-items: center; }
+  .modal-btn {
+    font-family: inherit; font-size: 14px; font-weight: 500;
+    padding: 10px 22px; border-radius: 999px; border: 1px solid transparent;
+    cursor: pointer; transition: background 0.15s, color 0.15s, transform 0.1s;
+  }
+  .modal-btn:active { transform: scale(0.97); }
+  .modal-btn.primary { background: var(--text-primary); color: var(--bg); }
+  .modal-btn.primary:hover { background: #e0e0e0; }
+  .modal-btn.primary:disabled { opacity: 0.35; cursor: default; transform: none; }
+  .modal-btn.secondary { background: transparent; color: var(--text-tertiary); border-color: rgba(255,255,255,0.08); }
+  .modal-btn.secondary:hover { color: var(--text-secondary); background: rgba(255,255,255,0.04); }
+  .modal-welcome { text-align: center; padding: 8px 0; }
+  .modal-welcome-name {
+    font-size: 28px; font-weight: 700; margin-bottom: 8px;
+    background: linear-gradient(135deg, var(--success), var(--warning));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .modal-welcome-focus { font-size: 14px; color: var(--text-secondary); margin-bottom: 20px; }
+  .modal-welcome-quote {
+    font-size: 15px; color: var(--text-primary); font-style: italic;
+    line-height: 1.6; margin-bottom: 28px; opacity: 0.85;
+  }
+  .modal-morning-msg {
+    background: rgba(107,227,164,0.06);
+    border: 1px solid rgba(107,227,164,0.15);
+    border-radius: var(--radius-md);
+    padding: 16px; font-size: 14px; color: var(--text-secondary);
+    line-height: 1.65; margin-bottom: 24px;
+  }
+  .custom-intention-input {
+    font-family: inherit; font-size: 13px;
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+    border-radius: var(--radius-sm); color: var(--text-primary);
+    padding: 8px 12px; width: 100%; outline: none; margin-top: 10px;
+    transition: border-color 0.15s;
+  }
+  .custom-intention-input::placeholder { color: var(--text-tertiary); }
+  .custom-intention-input:focus { border-color: rgba(255,255,255,0.2); }
 </style>
 </head>
 <body>
@@ -1216,6 +1347,326 @@
     App.goalTicker.init();
     App.dayRing.init();
     App.todoList.init();
+  });
+
+  /* ============================================================
+     PHASE 3 — MODAL ENGINE
+  ============================================================ */
+
+  App.modal = (function () {
+    let el = null;
+    return {
+      open(innerHtml) {
+        this.close();
+        el = document.createElement('div');
+        el.className = 'modal-overlay';
+        el.innerHTML = `<div class="modal-card">${innerHtml}</div>`;
+        document.body.appendChild(el);
+      },
+      close() { if (el) { el.remove(); el = null; } },
+    };
+  })();
+
+  /* ============================================================
+     PHASE 3 — ONBOARDING
+  ============================================================ */
+
+  App.onboarding = (function () {
+    const STEPS = [
+      { id: 'name', type: 'text', question: "What's your name?", placeholder: 'Enter your name…' },
+      { id: 'focus', type: 'cards', question: "What's your #1 focus right now?", cols: 2,
+        options: [
+          { label: 'Career & Business', icon: '💼' }, { label: 'Learning & Skills', icon: '📚' },
+          { label: 'Getting Fit',       icon: '🏃' }, { label: 'Financial Freedom', icon: '💰' },
+          { label: 'Mental Wellbeing',  icon: '🧘' }, { label: 'Creative Projects', icon: '🎨' },
+        ]},
+      { id: 'discipline', type: 'cards', question: "How would you describe your current discipline level?", cols: 2,
+        options: [
+          { label: 'Dead Lazy',       icon: '😴' }, { label: 'Getting Started', icon: '🌱' },
+          { label: 'Inconsistent',    icon: '⚡' }, { label: 'Pretty Solid',    icon: '💪' },
+          { label: 'Full Grind Mode', icon: '🔥' },
+        ]},
+      { id: 'wakeTime', type: 'cards', question: "What time do you usually wake up?", cols: 2,
+        options: [
+          { label: 'Before 6AM', icon: '🌙' }, { label: '6–7AM', icon: '🌅' },
+          { label: '7–8AM',      icon: '☀️' }, { label: '8–9AM', icon: '🌤️' },
+          { label: 'After 9AM',  icon: '😴' },
+        ]},
+      { id: 'fitnessLevel', type: 'cards', question: "What's your current fitness level?", cols: 2,
+        options: [
+          { label: 'Couch mode',       icon: '🛋️' }, { label: 'Light activity',   icon: '🚶' },
+          { label: 'Regular workouts', icon: '🏃' }, { label: 'Athletic',         icon: '💪' },
+          { label: 'Beast mode',       icon: '🦁' },
+        ]},
+      { id: 'obstacle', type: 'cards', question: "What's your biggest obstacle?", cols: 3,
+        options: [
+          { label: 'Laziness',                  icon: '😪' }, { label: 'No time',        icon: '⏰' },
+          { label: 'No motivation',             icon: '😑' }, { label: "Don't know where to start", icon: '🤷' },
+          { label: 'Distraction',               icon: '📱' }, { label: 'All of the above', icon: '💀' },
+        ]},
+      { id: 'bestSelf', type: 'text', question: "One sentence: what does your best self look like?", placeholder: 'Describe your best self…' },
+      { id: 'welcome', type: 'welcome' },
+    ];
+
+    const QUOTES = [
+      "Every expert was once a beginner. Your consistency today builds your legacy tomorrow.",
+      "You don't rise to the level of your goals — you fall to the level of your systems. Let's build yours.",
+      "Small daily improvements are the key to staggering long-term results.",
+      "The secret of getting ahead is getting started. You just did.",
+    ];
+
+    let answers = {}, step = 0;
+
+    function dots(cur, total) {
+      return '<div class="modal-dots">' +
+        Array.from({ length: total }, (_, i) =>
+          `<div class="modal-dot ${i < cur ? 'done' : i === cur ? 'active' : ''}"></div>`
+        ).join('') + '</div>';
+    }
+
+    function renderStep() {
+      const s = STEPS[step];
+
+      if (s.type === 'welcome') {
+        const name = answers.name || 'there';
+        const focus = answers.focus || 'your goals';
+        const quote = QUOTES[Math.floor(Math.random() * QUOTES.length)];
+        App.modal.open(`
+          ${dots(step, STEPS.length)}
+          <div class="modal-welcome">
+            <div class="modal-welcome-name">Hey, ${name}! 👋</div>
+            <div class="modal-welcome-focus">Focus: ${focus}</div>
+            <div class="modal-welcome-quote">"${quote}"</div>
+            <button class="modal-btn primary" id="ob-finish" style="width:100%">Let's build your first day →</button>
+          </div>`);
+        document.getElementById('ob-finish').addEventListener('click', finish);
+        return;
+      }
+
+      const sel = answers[s.id];
+      let bodyHtml = '';
+      if (s.type === 'text') {
+        bodyHtml = `<input class="modal-text-input" id="ob-text" placeholder="${s.placeholder}" value="${sel || ''}" />`;
+      } else {
+        const gridCls = s.cols === 3 ? 'choice-grid cols-3' : 'choice-grid';
+        bodyHtml = `<div class="${gridCls}">` +
+          s.options.map(o =>
+            `<div class="choice-card ${sel === o.label ? 'selected' : ''}" data-value="${o.label}">
+               <span class="choice-icon">${o.icon}</span>
+               <span class="choice-label">${o.label}</span>
+             </div>`).join('') + '</div>';
+      }
+
+      App.modal.open(`
+        ${dots(step, STEPS.length)}
+        <h2 class="modal-question">${s.question}</h2>
+        ${bodyHtml}
+        <div class="modal-nav">
+          ${step > 0 ? '<button class="modal-btn secondary" id="ob-back">← Back</button>' : ''}
+          <button class="modal-btn primary" id="ob-next" ${s.type === 'cards' && !sel ? 'disabled' : ''}>
+            ${step === STEPS.length - 2 ? 'Finish →' : 'Next →'}
+          </button>
+        </div>`);
+
+      document.querySelectorAll('.choice-card').forEach(c => {
+        c.addEventListener('click', function () {
+          answers[s.id] = this.dataset.value;
+          document.querySelectorAll('.choice-card').forEach(x => x.classList.remove('selected'));
+          this.classList.add('selected');
+          document.getElementById('ob-next').disabled = false;
+          setTimeout(goNext, 300);
+        });
+      });
+
+      const ti = document.getElementById('ob-text');
+      if (ti) {
+        ti.focus();
+        ti.addEventListener('keydown', e => { if (e.key === 'Enter' && ti.value.trim()) { answers[s.id] = ti.value.trim(); goNext(); } });
+      }
+      document.getElementById('ob-next').addEventListener('click', () => {
+        if (s.type === 'text') { const v = document.getElementById('ob-text').value.trim(); if (v) answers[s.id] = v; }
+        goNext();
+      });
+      const bb = document.getElementById('ob-back');
+      if (bb) bb.addEventListener('click', () => { step--; renderStep(); });
+    }
+
+    function goNext() { step++; renderStep(); }
+
+    function finish() {
+      App.storage.set('user_profile', answers);
+      App.modal.close();
+      setTimeout(() => App.checkin.maybeShow(), 800);
+    }
+
+    return {
+      maybeShow() {
+        if (!App.storage.get('user_profile', null)) { step = 0; answers = {}; renderStep(); }
+      },
+    };
+  })();
+
+  /* ============================================================
+     PHASE 3 — MORNING CHECK-IN
+  ============================================================ */
+
+  App.checkin = (function () {
+    const SLEEP_OPTS    = [{ label:'Terrible',icon:'💀',val:1},{label:'Poor',icon:'😴',val:2},{label:'Okay',icon:'😐',val:3},{label:'Good',icon:'😌',val:4},{label:'Great',icon:'🌟',val:5}];
+    const ENERGY_OPTS   = [{ label:'Empty',icon:'⚡0',val:0},{label:'Low',icon:'⚡1',val:1},{label:'Medium',icon:'⚡2',val:2},{label:'High',icon:'⚡3',val:3},{label:'Turbo',icon:'⚡4',val:4}];
+    const STRESS_OPTS   = [{ label:'Chilling',icon:'😎',val:1},{label:'A little tense',icon:'😬',val:2},{label:'Moderate stress',icon:'😰',val:3},{label:'High stress',icon:'😱',val:4}];
+    const INTENTION_OPTS= [{ label:'Grind day',icon:'💼'},{label:'Learn something new',icon:'📚'},{label:'Take it easy',icon:'🌿'},{label:'Work out hard',icon:'💪'},{label:'Catch up on tasks',icon:'📋'}];
+    const EMOJIS = ['😞','😕','😐','🙂','😊','😄'];
+    const TOTAL = 6;
+    let answers = {}, step = 0;
+
+    function dots(cur) {
+      return '<div class="modal-dots">' +
+        Array.from({ length: TOTAL }, (_, i) =>
+          `<div class="modal-dot ${i < cur ? 'done' : i === cur ? 'active' : ''}"></div>`
+        ).join('') + '</div>';
+    }
+
+    function cardGrid(opts, key) {
+      const sel = answers[key];
+      return '<div class="choice-grid">' +
+        opts.map(o =>
+          `<div class="choice-card ${sel === o.val || sel === o.label ? 'selected' : ''}"
+                data-key="${key}" data-val="${o.val !== undefined ? o.val : o.label}">
+             <span class="choice-icon">${o.icon}</span>
+             <span class="choice-label">${o.label}</span>
+           </div>`).join('') + '</div>';
+    }
+
+    function pick(key, cb) {
+      document.querySelectorAll(`.choice-card[data-key="${key}"]`).forEach(c => {
+        c.addEventListener('click', function () {
+          const raw = this.dataset.val;
+          answers[key] = isNaN(raw) ? raw : Number(raw);
+          document.querySelectorAll(`.choice-card[data-key="${key}"]`).forEach(x => x.classList.remove('selected'));
+          this.classList.add('selected');
+          const nb = document.getElementById('ci-next'); if (nb) nb.disabled = false;
+          setTimeout(cb, 280);
+        });
+      });
+    }
+
+    function navBtns(showBack, nextLabel, nextDisabled) {
+      return `<div class="modal-nav">
+        ${showBack ? '<button class="modal-btn secondary" id="ci-back">← Back</button>' : ''}
+        <button class="modal-btn primary" id="ci-next" ${nextDisabled ? 'disabled' : ''}>${nextLabel || 'Next →'}</button>
+      </div>`;
+    }
+
+    function wire() {
+      const nb = document.getElementById('ci-next');
+      const bb = document.getElementById('ci-back');
+      if (nb) nb.addEventListener('click', goNext);
+      if (bb) bb.addEventListener('click', goPrev);
+    }
+
+    function morningMsg() {
+      const profile = App.storage.get('user_profile', {});
+      const mood = answers.mood || 3;
+      const name = profile.name || 'there';
+      const intention = answers.customIntention || answers.intention || 'do your best';
+      if (mood <= 2) return `Hey ${name}, rough start — that's okay. Even on your hardest days, showing up matters. One small win today. Just one.`;
+      if (mood <= 4) return `Good morning ${name}. Your intention: <strong>${intention}</strong>. Take it one task at a time — progress over perfection.`;
+      return `Let's go ${name}! You're in a great headspace. Intention: <strong>${intention}</strong>. Use this energy — make today count.`;
+    }
+
+    function renderStep() {
+      const profile = App.storage.get('user_profile', {});
+      const name = profile.name || '';
+
+      if (step === 0) {
+        App.modal.open(`
+          ${dots(0)}
+          <h2 class="modal-question">Good morning${name ? ' ' + name : ''} ☀️</h2>
+          <p class="modal-sub">How are you feeling right now?</p>
+          <div class="emoji-row">${EMOJIS.map((e,i) =>
+            `<button class="emoji-btn ${answers.mood===i+1?'selected':''}" data-mood="${i+1}">${e}</button>`
+          ).join('')}</div>
+          ${navBtns(false, 'Next →', !answers.mood)}`);
+        document.querySelectorAll('.emoji-btn').forEach(b => {
+          b.addEventListener('click', function () {
+            answers.mood = parseInt(this.dataset.mood, 10);
+            document.querySelectorAll('.emoji-btn').forEach(x => x.classList.remove('selected'));
+            this.classList.add('selected');
+            const nb = document.getElementById('ci-next'); if (nb) nb.disabled = false;
+            setTimeout(goNext, 280);
+          });
+        });
+        wire();
+
+      } else if (step === 1) {
+        App.modal.open(`${dots(1)}<h2 class="modal-question">How was your sleep?</h2>${cardGrid(SLEEP_OPTS,'sleep')}${navBtns(true,'Next →',answers.sleep===undefined)}`);
+        pick('sleep', goNext); wire();
+
+      } else if (step === 2) {
+        App.modal.open(`${dots(2)}<h2 class="modal-question">Energy level right now?</h2>${cardGrid(ENERGY_OPTS,'energy')}${navBtns(true,'Next →',answers.energy===undefined)}`);
+        pick('energy', goNext); wire();
+
+      } else if (step === 3) {
+        App.modal.open(`${dots(3)}<h2 class="modal-question">Any stress or anxiety?</h2>${cardGrid(STRESS_OPTS,'stress')}${navBtns(true,'Next →',answers.stress===undefined)}`);
+        pick('stress', goNext); wire();
+
+      } else if (step === 4) {
+        const selInt = answers.intention;
+        App.modal.open(`
+          ${dots(4)}
+          <h2 class="modal-question">Set your intention for today</h2>
+          <div class="choice-grid">${INTENTION_OPTS.map(o =>
+            `<div class="choice-card ${selInt===o.label?'selected':''}" data-key="intention" data-val="${o.label}">
+               <span class="choice-icon">${o.icon}</span><span class="choice-label">${o.label}</span>
+             </div>`).join('')}</div>
+          <input class="custom-intention-input" id="ci-custom" placeholder="Or write your own…" value="${answers.customIntention||''}" />
+          ${navBtns(true, 'Next →', false)}`);
+        pick('intention', () => {});
+        document.getElementById('ci-custom').addEventListener('input', function () {
+          if (this.value.trim()) { answers.customIntention = this.value.trim(); answers.intention = undefined;
+            document.querySelectorAll('.choice-card[data-key="intention"]').forEach(x => x.classList.remove('selected')); }
+        });
+        wire();
+
+      } else if (step === 5) {
+        App.modal.open(`
+          ${dots(5)}
+          <h2 class="modal-question">Here's your morning brief ✨</h2>
+          <div class="modal-morning-msg">${morningMsg()}</div>
+          <div class="modal-nav">
+            <button class="modal-btn secondary" id="ci-back">← Back</button>
+            <button class="modal-btn primary" id="ci-finish" style="flex:1">Start your day →</button>
+          </div>`);
+        document.getElementById('ci-finish').addEventListener('click', finish);
+        document.getElementById('ci-back').addEventListener('click', goPrev);
+      }
+    }
+
+    function goNext() { step++; renderStep(); }
+    function goPrev() { step--; renderStep(); }
+
+    function finish() {
+      App.storage.set(`checkin:${App.dates.activeDate()}`, { ...answers, ts: Date.now() });
+      App.modal.close();
+      App.bus.emit('checkin-completed', answers);
+    }
+
+    return {
+      maybeShow() {
+        if (!App.storage.get('user_profile', null)) return;
+        if (App.storage.get(`checkin:${App.dates.activeDate()}`, null)) return;
+        setTimeout(() => { step = 0; answers = {}; renderStep(); }, 5000);
+      },
+    };
+  })();
+
+  /* ============================================================
+     PHASE 3 — INIT REGISTRATION
+  ============================================================ */
+
+  App.registerInit(function () {
+    App.onboarding.maybeShow();
+    App.checkin.maybeShow();
   });
 
   /* ============================================================
