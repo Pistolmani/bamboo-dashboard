@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
 <title>My Dashboard</title>
 <style>
+  /* ============================================================
+     CSS VARIABLES & RESET
+  ============================================================ */
   :root {
     --bg: #050506;
     --text-primary: #FAFAFA;
@@ -22,10 +25,12 @@
     --font-sans: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   }
-
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; }
 
+  /* ============================================================
+     BODY & BACKGROUND
+  ============================================================ */
   body {
     background: var(--bg);
     color: var(--text-primary);
@@ -38,47 +43,43 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
-
-  /* Two soft radial washes that slowly drift */
   body::before {
     content: "";
     position: fixed;
     inset: -10%;
     background:
-      radial-gradient(circle at 82% 14%, rgba(224, 118, 88, 0.16), transparent 40%),
-      radial-gradient(circle at 18% 90%, rgba(180, 180, 200, 0.06), transparent 45%);
+      radial-gradient(circle at 82% 14%, rgba(224,118,88,0.16), transparent 40%),
+      radial-gradient(circle at 18% 90%, rgba(180,180,200,0.06), transparent 45%);
     filter: blur(40px);
     z-index: -2;
     pointer-events: none;
     animation: drift 36s ease-in-out infinite alternate;
   }
-
   @keyframes drift {
-    0%   { transform: translate3d(0, 0, 0) scale(1); }
-    50%  { transform: translate3d(2%, -1.5%, 0) scale(1.04); }
-    100% { transform: translate3d(-1.5%, 2%, 0) scale(1.02); }
+    0%   { transform: translate3d(0,0,0) scale(1); }
+    50%  { transform: translate3d(2%,-1.5%,0) scale(1.04); }
+    100% { transform: translate3d(-1.5%,2%,0) scale(1.02); }
   }
-
-  /* Film-grain overlay, 3x3 px tile of a single faint white dot */
   body::after {
     content: "";
     position: fixed;
     inset: 0;
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='3' height='3'><rect width='3' height='3' fill='black' fill-opacity='0'/><rect x='0' y='0' width='1' height='1' fill='white' fill-opacity='0.014'/></svg>");
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='3' height='3'><rect x='0' y='0' width='1' height='1' fill='white' fill-opacity='0.014'/></svg>");
     background-size: 3px 3px;
     z-index: -1;
     pointer-events: none;
     mix-blend-mode: screen;
   }
 
+  /* ============================================================
+     LAYOUT
+  ============================================================ */
   .container {
     max-width: 1100px;
     margin: 0 auto;
     padding: 32px 24px;
   }
-
   header.container { padding-bottom: 8px; }
-
   h1.page-title {
     margin: 0;
     font-size: 28px;
@@ -89,7 +90,6 @@
     background-clip: text;
     color: transparent;
   }
-
   main.container {
     display: flex;
     flex-direction: column;
@@ -97,7 +97,6 @@
     padding-top: 20px;
     padding-bottom: 120px;
   }
-
   .card {
     background: var(--card-bg);
     border: 1px solid var(--card-border);
@@ -107,8 +106,6 @@
     -webkit-backdrop-filter: blur(24px) saturate(1.2);
     box-shadow: var(--shadow-card);
   }
-
-  /* Stub placeholders so empty sections render an empty card during Phase 1 */
   main.container > section:empty {
     background: var(--card-bg);
     border: 1px dashed var(--card-border);
@@ -116,8 +113,6 @@
     min-height: 64px;
     opacity: 0.45;
   }
-
-  /* Settings gear, top-right */
   #settings-gear {
     position: fixed;
     top: 18px;
@@ -138,10 +133,8 @@
   #settings-gear:hover {
     color: var(--text-primary);
     transform: translateY(-1px) rotate(20deg);
-    background: rgba(255, 255, 255, 0.08);
+    background: rgba(255,255,255,0.08);
   }
-
-  /* Chat toggle button — visual placeholder for Phase 1, wired in Phase 6 */
   #chat-toggle {
     position: fixed;
     bottom: 20px;
@@ -160,10 +153,407 @@
     z-index: 10;
     opacity: 0.6;
   }
-
   #chat-panel { display: none; }
   #modal-root { position: relative; z-index: 100; }
 
+  /* ============================================================
+     GOAL TICKER
+  ============================================================ */
+  .ticker-wrap {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    padding: 10px 16px;
+    overflow: hidden;
+    backdrop-filter: blur(24px) saturate(1.2);
+    -webkit-backdrop-filter: blur(24px) saturate(1.2);
+    box-shadow: var(--shadow-card);
+  }
+  .ticker-led {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--success);
+    flex-shrink: 0;
+    animation: led-pulse 2s ease-in-out infinite;
+  }
+  @keyframes led-pulse {
+    0%,100% { box-shadow: 0 0 0 0 rgba(107,227,164,0.5); }
+    50%      { box-shadow: 0 0 0 5px rgba(107,227,164,0); }
+  }
+  .ticker-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    color: var(--text-tertiary);
+    flex-shrink: 0;
+  }
+  .ticker-viewport {
+    flex: 1;
+    overflow: hidden;
+    height: 22px;
+    position: relative;
+  }
+  .ticker-item {
+    position: absolute;
+    inset: 0;
+    font-size: 14px;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: flex;
+    align-items: center;
+    animation: ticker-in 0.4s ease;
+  }
+  .ticker-item.out {
+    animation: ticker-out 0.35s ease forwards;
+  }
+  @keyframes ticker-in {
+    from { transform: translateY(110%); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
+  }
+  @keyframes ticker-out {
+    from { transform: translateY(0);     opacity: 1; }
+    to   { transform: translateY(-110%); opacity: 0; }
+  }
+  .ticker-pill {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.06);
+    color: var(--text-secondary);
+    flex-shrink: 0;
+  }
+
+  /* ============================================================
+     DAY RING
+  ============================================================ */
+  .ring-card {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+  }
+  .ring-svg-wrap {
+    position: relative;
+    flex-shrink: 0;
+    width: 160px;
+    height: 160px;
+  }
+  .ring-svg-wrap svg { transform: rotate(-90deg); }
+  .ring-bg-circle {
+    fill: none;
+    stroke: rgba(255,255,255,0.06);
+    stroke-width: 10;
+  }
+  .ring-fg-circle {
+    fill: none;
+    stroke-width: 10;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 1.2s ease, stroke 0.8s ease;
+  }
+  .ring-center {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+  }
+  .ring-pct {
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    color: var(--text-primary);
+  }
+  .ring-phase-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    color: var(--text-tertiary);
+  }
+  .ring-clock {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-top: 2px;
+  }
+  .ring-info {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .ring-status {
+    font-size: 15px;
+    color: var(--text-primary);
+    font-weight: 500;
+  }
+  .ring-remaining {
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+  .ring-hours {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-tertiary);
+  }
+
+  /* ============================================================
+     TO DO LIST (TODAY + TOMORROW)
+  ============================================================ */
+  .todo-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .todo-eyebrow {
+    font-size: 11px;
+    font-family: var(--font-mono);
+    letter-spacing: 0.08em;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    margin-bottom: 2px;
+  }
+  .todo-big-progress {
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    color: var(--text-primary);
+  }
+  .todo-big-progress .todo-total {
+    color: var(--text-tertiary);
+    font-size: 22px;
+  }
+  .todo-done-label {
+    font-size: 12px;
+    color: var(--success);
+    margin-top: 2px;
+    min-height: 18px;
+  }
+  .streak-pill {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 12px;
+    border-radius: 999px;
+    background: rgba(242,192,99,0.1);
+    border: 1px solid rgba(242,192,99,0.2);
+    font-size: 13px;
+    color: var(--warning);
+    font-weight: 600;
+    align-self: flex-start;
+  }
+  .streak-pill.zero { opacity: 0.4; background: rgba(255,255,255,0.04); border-color: transparent; color: var(--text-tertiary); }
+
+  /* Segmented progress bar */
+  .progress-bar {
+    display: flex;
+    gap: 3px;
+    margin-bottom: 16px;
+    height: 4px;
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .progress-seg {
+    flex: 1;
+    border-radius: 2px;
+    background: rgba(255,255,255,0.08);
+    transition: background 0.3s ease;
+  }
+  .progress-seg.done { background: var(--success); }
+
+  /* Goal rows */
+  .goal-list { display: flex; flex-direction: column; gap: 2px; margin-bottom: 12px; }
+  .goal-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    transition: background 0.15s ease, opacity 0.2s ease;
+    cursor: grab;
+    position: relative;
+    border-left: 2px solid transparent;
+    user-select: none;
+  }
+  .goal-row:hover { background: rgba(255,255,255,0.04); }
+  .goal-row.dragging { opacity: 0.4; }
+  .goal-row.drag-over { background: rgba(255,255,255,0.07); }
+  .goal-row.is-done {
+    opacity: 0.45;
+  }
+  .goal-row.is-queued {
+    background: rgba(242,192,99,0.05);
+    border-left-color: var(--warning);
+  }
+  .goal-row.is-done .goal-text { text-decoration: line-through; color: var(--text-tertiary); }
+
+  .goal-check {
+    width: 18px;
+    height: 18px;
+    border-radius: 5px;
+    border: 1.5px solid rgba(255,255,255,0.2);
+    background: transparent;
+    flex-shrink: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s ease, border-color 0.15s ease;
+  }
+  .goal-check:hover { border-color: var(--success); }
+  .goal-check.checked {
+    background: rgba(107,227,164,0.15);
+    border-color: var(--success);
+  }
+  .goal-check.checked::after {
+    content: "";
+    display: block;
+    width: 5px;
+    height: 9px;
+    border: 1.5px solid var(--success);
+    border-top: none;
+    border-left: none;
+    transform: rotate(45deg) translate(-1px, -1px);
+  }
+  .goal-text-wrap { flex: 1; min-width: 0; }
+  .goal-text {
+    font-size: 14px;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: text;
+  }
+  .goal-text-input {
+    font-family: inherit;
+    font-size: 14px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 4px;
+    color: var(--text-primary);
+    padding: 1px 6px;
+    width: 100%;
+    outline: none;
+  }
+  .goal-actions {
+    display: flex;
+    gap: 4px;
+    flex-shrink: 0;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+  .goal-row:hover .goal-actions { opacity: 1; }
+  .goal-btn {
+    background: none;
+    border: none;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    padding: 2px 5px;
+    border-radius: 4px;
+    font-size: 13px;
+    line-height: 1;
+    transition: color 0.15s, background 0.15s;
+  }
+  .goal-btn:hover { color: var(--text-primary); background: rgba(255,255,255,0.08); }
+  .goal-btn.queue-btn:hover { color: var(--warning); }
+  .goal-btn.del-btn:hover { color: var(--danger); }
+
+  .show-more-btn {
+    background: none;
+    border: none;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: var(--radius-sm);
+    transition: color 0.15s, background 0.15s;
+    width: 100%;
+    text-align: center;
+    margin-bottom: 10px;
+  }
+  .show-more-btn:hover { color: var(--text-secondary); background: rgba(255,255,255,0.04); }
+
+  .todo-add-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-top: 4px;
+  }
+  .todo-add-input {
+    flex: 1;
+    font-family: inherit;
+    font-size: 14px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    padding: 8px 12px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .todo-add-input::placeholder { color: var(--text-tertiary); }
+  .todo-add-input:focus { border-color: rgba(255,255,255,0.2); }
+  .todo-add-btn {
+    font-family: inherit;
+    font-size: 13px;
+    padding: 8px 14px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--card-border);
+    background: rgba(255,255,255,0.06);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    white-space: nowrap;
+  }
+  .todo-add-btn:hover { background: rgba(255,255,255,0.1); color: var(--text-primary); }
+  .todo-add-btn.polish { color: var(--warning); border-color: rgba(242,192,99,0.2); }
+
+  .push-btn {
+    font-family: inherit;
+    font-size: 12px;
+    background: none;
+    border: none;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    padding: 6px 10px;
+    border-radius: var(--radius-sm);
+    transition: color 0.15s, background 0.15s;
+    margin-top: 8px;
+  }
+  .push-btn:hover { color: var(--text-secondary); background: rgba(255,255,255,0.04); }
+
+  .todo-section-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .planned-badge {
+    padding: 2px 7px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.06);
+    color: var(--text-tertiary);
+    font-size: 10px;
+  }
+
+  /* ============================================================
+     RESPONSIVE
+  ============================================================ */
   @media (max-width: 600px) {
     .container { padding: 24px 16px; }
     h1.page-title { font-size: 24px; }
@@ -171,6 +561,9 @@
     .card { padding: 16px; }
     #settings-gear { top: 12px; right: 12px; }
     #chat-toggle { bottom: 14px; right: 14px; }
+    .ring-card { flex-direction: column; align-items: flex-start; }
+    .ring-svg-wrap { width: 140px; height: 140px; }
+    .ticker-label { display: none; }
   }
 </style>
 </head>
@@ -201,9 +594,10 @@
 
   const App = window.App = {};
 
-  // -------------------------------------------------------------------------
-  // App.config
-  // -------------------------------------------------------------------------
+  /* ============================================================
+     PHASE 1 — INFRASTRUCTURE
+  ============================================================ */
+
   App.config = {
     ANTHROPIC_API_KEY: 'PASTE_YOUR_KEY_HERE',
     MODEL_FAST: 'claude-haiku-4-5',
@@ -215,40 +609,22 @@
     return typeof k === 'string' && k.length > 0 && k !== 'PASTE_YOUR_KEY_HERE';
   };
 
-  // -------------------------------------------------------------------------
-  // App.storage — typed localStorage wrapper
-  // -------------------------------------------------------------------------
   App.storage = {
     get(key, defaultValue) {
       try {
         const raw = localStorage.getItem(key);
         if (raw === null) return defaultValue;
         return JSON.parse(raw);
-      } catch (e) {
-        console.warn('[storage.get]', key, e);
-        return defaultValue;
-      }
+      } catch (e) { return defaultValue; }
     },
     set(key, value) {
-      try {
-        localStorage.setItem(key, JSON.stringify(value));
-        return true;
-      } catch (e) {
-        console.warn('[storage.set]', key, e);
-        return false;
-      }
+      try { localStorage.setItem(key, JSON.stringify(value)); return true; }
+      catch (e) { return false; }
     },
-    remove(key) {
-      try { localStorage.removeItem(key); } catch (e) { /* ignore */ }
-    },
-    clearAll() {
-      try { localStorage.clear(); } catch (e) { /* ignore */ }
-    },
+    remove(key) { try { localStorage.removeItem(key); } catch (e) {} },
+    clearAll() { try { localStorage.clear(); } catch (e) {} },
   };
 
-  // -------------------------------------------------------------------------
-  // App.dates — 6AM-boundary active date logic
-  // -------------------------------------------------------------------------
   App.dates = {
     formatYMD(d) {
       const y = d.getFullYear();
@@ -256,14 +632,10 @@
       const day = String(d.getDate()).padStart(2, '0');
       return `${y}-${m}-${day}`;
     },
-    today(now) {
-      return App.dates.formatYMD(now || new Date());
-    },
+    today(now) { return App.dates.formatYMD(now || new Date()); },
     activeDate(now) {
       const d = new Date(now || new Date());
-      if (d.getHours() < App.config.DAY_BOUNDARY_HOUR) {
-        d.setDate(d.getDate() - 1);
-      }
+      if (d.getHours() < App.config.DAY_BOUNDARY_HOUR) d.setDate(d.getDate() - 1);
       return App.dates.formatYMD(d);
     },
     daysBetween(a, b) {
@@ -278,9 +650,6 @@
     },
   };
 
-  // -------------------------------------------------------------------------
-  // App.bus — tiny event bus
-  // -------------------------------------------------------------------------
   App.bus = (function () {
     const handlers = new Map();
     return {
@@ -288,42 +657,580 @@
         if (!handlers.has(name)) handlers.set(name, new Set());
         handlers.get(name).add(fn);
       },
-      off(name, fn) {
-        const set = handlers.get(name);
-        if (set) set.delete(fn);
-      },
+      off(name, fn) { const s = handlers.get(name); if (s) s.delete(fn); },
       emit(name, payload) {
-        const set = handlers.get(name);
-        if (!set) return;
-        for (const fn of set) {
-          try { fn(payload); } catch (e) { console.warn('[bus]', name, e); }
-        }
+        const s = handlers.get(name);
+        if (!s) return;
+        for (const fn of s) { try { fn(payload); } catch (e) {} }
       },
     };
   })();
 
-  // -------------------------------------------------------------------------
-  // App.boot — DOMContentLoaded entry point. Each later phase appends its init.
-  // -------------------------------------------------------------------------
   App.initFns = [];
   App.registerInit = function (fn) { App.initFns.push(fn); };
 
+  /* ============================================================
+     PHASE 2 — GOALS DATA LAYER
+  ============================================================ */
+
+  App.goals = {
+    key(date) { return `goals:${date}`; },
+
+    get(date) { return App.storage.get(App.goals.key(date), []); },
+
+    set(date, list) {
+      App.storage.set(App.goals.key(date), list);
+      App.bus.emit('goals-changed', { date });
+    },
+
+    add(date, text) {
+      text = text.trim();
+      if (!text) return;
+      const list = App.goals.get(date);
+      list.push({ id: Date.now().toString(36) + Math.random().toString(36).slice(2), text, done: false, queued: false });
+      App.goals.set(date, list);
+    },
+
+    toggle(date, id) {
+      const list = App.goals.get(date);
+      const g = list.find(x => x.id === id);
+      if (!g) return;
+      g.done = !g.done;
+      g.doneAt = g.done ? Date.now() : undefined;
+      App.goals.set(date, list);
+      App.streak.processDay(date);
+    },
+
+    delete(date, id) {
+      App.goals.set(date, App.goals.get(date).filter(x => x.id !== id));
+    },
+
+    updateText(date, id, text) {
+      text = text.trim();
+      if (!text) return;
+      const list = App.goals.get(date);
+      const g = list.find(x => x.id === id);
+      if (g) { g.text = text; App.goals.set(date, list); }
+    },
+
+    toggleQueue(date, id) {
+      const list = App.goals.get(date);
+      const g = list.find(x => x.id === id);
+      if (g) { g.queued = !g.queued; App.goals.set(date, list); }
+    },
+
+    reorder(date, fromIdx, toIdx) {
+      const list = App.goals.get(date);
+      if (fromIdx === toIdx) return;
+      const [item] = list.splice(fromIdx, 1);
+      list.splice(toIdx, 0, item);
+      App.goals.set(date, list);
+    },
+
+    pushRemaining(fromDate, toDate) {
+      const incomplete = App.goals.get(fromDate).filter(g => !g.done);
+      if (!incomplete.length) return;
+      const existing = App.goals.get(toDate);
+      const existingTexts = new Set(existing.map(g => g.text.toLowerCase()));
+      const toAdd = incomplete.filter(g => !existingTexts.has(g.text.toLowerCase()));
+      toAdd.forEach(g => {
+        existing.push({ id: Date.now().toString(36) + Math.random().toString(36).slice(2), text: g.text, done: false, queued: false });
+      });
+      App.goals.set(toDate, existing);
+    },
+
+    rollover() {
+      const active = App.dates.activeDate();
+      // Scan past 30 days for incomplete goals, push to today
+      for (let i = 1; i <= 30; i++) {
+        const past = App.dates.addDays(active, -i);
+        const pastGoals = App.goals.get(past);
+        if (!pastGoals.length) continue;
+        const incomplete = pastGoals.filter(g => !g.done);
+        if (!incomplete.length) continue;
+        const existing = App.goals.get(active);
+        const existingTexts = new Set(existing.map(g => g.text.toLowerCase()));
+        let added = false;
+        incomplete.forEach(g => {
+          if (!existingTexts.has(g.text.toLowerCase())) {
+            existing.push({ id: Date.now().toString(36) + Math.random().toString(36).slice(2), text: g.text, done: false, queued: false });
+            existingTexts.add(g.text.toLowerCase());
+            added = true;
+          }
+        });
+        if (added) App.goals.set(active, existing);
+      }
+    },
+
+    stats(date) {
+      const list = App.goals.get(date);
+      return { total: list.length, done: list.filter(g => g.done).length, list };
+    },
+  };
+
+  /* ============================================================
+     PHASE 2 — STREAK
+  ============================================================ */
+
+  App.streak = {
+    get() { return App.storage.get('goal_streak_v1', { count: 0, lastProcessedDate: null }); },
+    save(s) { App.storage.set('goal_streak_v1', s); },
+
+    processDay(date) {
+      const stats = App.goals.stats(date);
+      if (!stats.total) return; // no goals = skip
+      const s = App.streak.get();
+      if (s.lastProcessedDate === date) return; // already counted
+
+      if (stats.done === stats.total) {
+        // Check if this date is consecutive with last processed
+        const prev = s.lastProcessedDate;
+        if (!prev || App.dates.daysBetween(prev, date) === 1) {
+          s.count = (s.count || 0) + 1;
+        } else {
+          s.count = 1;
+        }
+        s.lastProcessedDate = date;
+        App.streak.save(s);
+      }
+    },
+
+    current() {
+      const s = App.streak.get();
+      const active = App.dates.activeDate();
+      // If streak was counted for today or yesterday, it's still live
+      if (!s.lastProcessedDate) return s.count;
+      const diff = App.dates.daysBetween(s.lastProcessedDate, active);
+      if (diff > 1) {
+        // Check if yesterday had incomplete goals (streak broken)
+        const yesterday = App.dates.addDays(active, -1);
+        const yStats = App.goals.stats(yesterday);
+        if (yStats.total > 0 && yStats.done < yStats.total) {
+          App.streak.save({ count: 0, lastProcessedDate: null });
+          return 0;
+        }
+      }
+      return s.count;
+    },
+  };
+
+  /* ============================================================
+     PHASE 2 — GOAL TICKER
+  ============================================================ */
+
+  App.goalTicker = (function () {
+    let idx = 0;
+    let intervalId = null;
+    let el = null;
+
+    function getPending() {
+      const { list } = App.goals.stats(App.dates.activeDate());
+      return list.filter(g => !g.done);
+    }
+
+    function render() {
+      if (!el) return;
+      const pending = getPending();
+      const { total, done } = App.goals.stats(App.dates.activeDate());
+
+      const pill = el.querySelector('.ticker-pill');
+      if (pill) pill.textContent = `${done}/${total}`;
+
+      const viewport = el.querySelector('.ticker-viewport');
+      if (!viewport) return;
+
+      let text;
+      if (total === 0) {
+        text = 'No goals set for today';
+      } else if (pending.length === 0) {
+        text = '✓ All goals done — solid day.';
+      } else {
+        if (idx >= pending.length) idx = 0;
+        text = pending[idx].text;
+      }
+
+      // Slide out existing, slide in new
+      const existing = viewport.querySelector('.ticker-item');
+      if (existing) {
+        existing.classList.add('out');
+        setTimeout(() => existing.remove(), 350);
+      }
+      setTimeout(() => {
+        const item = document.createElement('div');
+        item.className = 'ticker-item';
+        item.textContent = text;
+        viewport.appendChild(item);
+      }, 350);
+    }
+
+    function advance() {
+      const pending = getPending();
+      if (pending.length > 1) idx = (idx + 1) % pending.length;
+      render();
+    }
+
+    function init() {
+      el = document.getElementById('goal-ticker');
+      if (!el) return;
+      el.innerHTML = `
+        <div class="ticker-wrap">
+          <span class="ticker-led"></span>
+          <span class="ticker-label">GOALS</span>
+          <div class="ticker-viewport"></div>
+          <span class="ticker-pill">0/0</span>
+        </div>`;
+      render();
+      if (intervalId) clearInterval(intervalId);
+      intervalId = setInterval(advance, 5000);
+      App.bus.on('goals-changed', () => { idx = 0; render(); });
+    }
+
+    return { init };
+  })();
+
+  /* ============================================================
+     PHASE 2 — DAY RING
+  ============================================================ */
+
+  App.dayRing = (function () {
+    const R = 70;
+    const C = 2 * Math.PI * R; // ≈ 439.82
+
+    const PHASES = [
+      { label: 'SLEEPING',   start: 0,  end: 8,  color: '#4A4A6A' },
+      { label: 'MORNING',    start: 8,  end: 12, color: '#F2C063' },
+      { label: 'MIDDAY',     start: 12, end: 15, color: '#FFA040' },
+      { label: 'AFTERNOON',  start: 15, end: 19, color: '#FF7060' },
+      { label: 'EVENING',    start: 19, end: 22, color: '#9B70FF' },
+      { label: 'BEDTIME',    start: 22, end: 24, color: '#5070FF' },
+    ];
+
+    function getPhaseInfo(h, m) {
+      const frac = h + m / 60;
+      if (frac >= 24) return { ...PHASES[5], progress: 1 };
+      if (frac < 0)   return { ...PHASES[0], progress: 0 };
+      const phase = PHASES.find(p => frac >= p.start && frac < p.end) || PHASES[5];
+      const progress = Math.min(1, Math.max(0, (frac - 8) / 16)); // 8AM–midnight = 100%
+      return { ...phase, progress };
+    }
+
+    function formatTime(d) {
+      const h = d.getHours(), m = d.getMinutes();
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      const hh = h % 12 || 12;
+      return `${hh}:${String(m).padStart(2, '0')} ${ampm}`;
+    }
+
+    function minutesUntilMidnight(d) {
+      return (23 - d.getHours()) * 60 + (59 - d.getMinutes());
+    }
+
+    function render() {
+      const now = new Date();
+      const h = now.getHours(), m = now.getMinutes();
+      const { label, color, progress } = getPhaseInfo(h, m);
+
+      const arc = document.getElementById('ring-fg');
+      if (arc) {
+        arc.style.stroke = color;
+        arc.style.strokeDasharray = C;
+        arc.style.strokeDashoffset = C * (1 - progress);
+      }
+
+      const pctEl = document.getElementById('ring-pct');
+      if (pctEl) pctEl.textContent = Math.round(progress * 100) + '%';
+
+      const phaseEl = document.getElementById('ring-phase-label');
+      if (phaseEl) phaseEl.textContent = label;
+
+      const clockEl = document.getElementById('ring-clock');
+      if (clockEl) clockEl.textContent = formatTime(now);
+
+      const statusEl = document.getElementById('ring-status');
+      if (statusEl) {
+        if (h < 8) statusEl.textContent = 'Still early — rest up.';
+        else if (h >= 24 || (h === 0)) statusEl.textContent = 'Past bedtime! Get some sleep.';
+        else statusEl.textContent = 'Day is underway.';
+      }
+
+      const remEl = document.getElementById('ring-remaining');
+      if (remEl) {
+        if (h < 8) {
+          const until8 = (8 - h) * 60 - m;
+          remEl.textContent = `${Math.floor(until8 / 60)}h ${until8 % 60}m until 8AM`;
+        } else if (h < 24) {
+          const rem = minutesUntilMidnight(now);
+          remEl.textContent = `${Math.floor(rem / 60)}h ${rem % 60}m remaining`;
+        } else {
+          remEl.textContent = 'Day complete';
+        }
+      }
+
+      const hoursEl = document.getElementById('ring-hours');
+      if (hoursEl) hoursEl.textContent = '8:00 AM → 12:00 AM';
+    }
+
+    function init() {
+      const el = document.getElementById('day-ring');
+      if (!el) return;
+      el.className = 'card';
+      el.innerHTML = `
+        <div class="ring-card">
+          <div class="ring-svg-wrap">
+            <svg viewBox="0 0 160 160" width="160" height="160">
+              <circle class="ring-bg-circle" cx="80" cy="80" r="${R}" />
+              <circle id="ring-fg" class="ring-fg-circle" cx="80" cy="80" r="${R}"
+                      transform="rotate(-90 80 80)"
+                      style="stroke-dasharray:${C};stroke-dashoffset:${C}" />
+            </svg>
+            <div class="ring-center">
+              <span class="ring-pct" id="ring-pct">0%</span>
+              <span class="ring-phase-label" id="ring-phase-label">SLEEPING</span>
+              <span class="ring-clock" id="ring-clock">--:--</span>
+            </div>
+          </div>
+          <div class="ring-info">
+            <div class="ring-status" id="ring-status"></div>
+            <div class="ring-remaining" id="ring-remaining"></div>
+            <div class="ring-hours" id="ring-hours"></div>
+          </div>
+        </div>`;
+      render();
+      setInterval(render, 60000);
+    }
+
+    return { init };
+  })();
+
+  /* ============================================================
+     PHASE 2 — TODO LIST (shared renderer)
+  ============================================================ */
+
+  App.todoList = (function () {
+    function makeTodoCard(date, opts) {
+      const { isTomorrow } = opts || {};
+      const el = document.getElementById(isTomorrow ? 'todo-tomorrow' : 'todo-today');
+      if (!el) return;
+
+      const active = App.dates.activeDate();
+      const isReadOnly = isTomorrow; // tomorrow is read-only until it becomes today
+
+      function getDateLabel(d) {
+        const today = App.dates.today();
+        const tomorrow = App.dates.addDays(today, 1);
+        if (d === today) return 'TODAY';
+        if (d === tomorrow) return 'TOMORROW';
+        return d;
+      }
+
+      function renderCard() {
+        const { total, done, list } = App.goals.stats(date);
+        const streak = App.streak.current();
+        const VISIBLE_LIMIT = 5;
+        const isExpanded = el._expanded || false;
+        const visibleList = isExpanded ? list : list.slice(0, VISIBLE_LIMIT);
+
+        const eyebrow = isTomorrow
+          ? `<span class="todo-section-label">To Do List — Plan Tomorrow <span class="planned-badge">${total} planned</span></span>`
+          : `<div class="todo-eyebrow">${getDateLabel(date)}</div>`;
+
+        const allDone = total > 0 && done === total;
+        const progressSegs = list.map((g, i) =>
+          `<div class="progress-seg ${g.done ? 'done' : ''}"></div>`).join('');
+
+        const rowsHtml = visibleList.map((g, i) => {
+          const realIdx = list.indexOf(g);
+          return `<div class="goal-row ${g.done ? 'is-done' : ''} ${g.queued && !g.done ? 'is-queued' : ''}"
+                       data-id="${g.id}" data-idx="${realIdx}"
+                       draggable="true">
+            <div class="goal-check ${g.done ? 'checked' : ''}" data-action="toggle" data-id="${g.id}"></div>
+            <div class="goal-text-wrap">
+              <span class="goal-text" data-action="edit" data-id="${g.id}">${escHtml(g.text)}</span>
+            </div>
+            <div class="goal-actions">
+              ${!isReadOnly && !g.done ? `<button class="goal-btn queue-btn" data-action="queue" data-id="${g.id}" title="Queue for later">⚡</button>` : ''}
+              <button class="goal-btn del-btn" data-action="delete" data-id="${g.id}" title="Delete">×</button>
+            </div>
+          </div>`;
+        }).join('');
+
+        const showMoreBtn = !isExpanded && list.length > VISIBLE_LIMIT
+          ? `<button class="show-more-btn" data-action="expand">Show ${list.length - VISIBLE_LIMIT} more</button>`
+          : (isExpanded && list.length > VISIBLE_LIMIT
+            ? `<button class="show-more-btn" data-action="collapse">Show less</button>` : '');
+
+        const addRow = !isReadOnly ? `
+          <div class="todo-add-row">
+            <input class="todo-add-input" placeholder="Add a goal…" id="${isTomorrow ? 'tmrw-add' : 'today-add'}" />
+            <button class="todo-add-btn" data-action="add">Add</button>
+            <button class="todo-add-btn polish" data-action="polish" title="Polish with AI">✨</button>
+          </div>` : '';
+
+        const pushBtn = !isReadOnly && total > done && total > 0
+          ? `<button class="push-btn" data-action="push">→ Push remaining to tomorrow</button>`
+          : '';
+
+        el.className = 'card';
+        el.innerHTML = `
+          <div class="todo-header">
+            <div>
+              ${eyebrow}
+              ${!isTomorrow ? `<div class="todo-big-progress">
+                <span>${done}</span><span class="todo-total">/${total}</span>
+              </div>
+              <div class="todo-done-label">${allDone ? '✓ all done — solid day.' : ''}</div>` : ''}
+            </div>
+            ${!isTomorrow ? `<div class="streak-pill ${streak === 0 ? 'zero' : ''}">⚡ ${streak} day${streak !== 1 ? 's' : ''}</div>` : ''}
+          </div>
+          ${list.length > 0 ? `<div class="progress-bar">${progressSegs}</div>` : ''}
+          <div class="goal-list">${rowsHtml}</div>
+          ${showMoreBtn}
+          ${addRow}
+          ${pushBtn}`;
+
+        attachEvents(el, date, isReadOnly, renderCard);
+      }
+
+      el._render = renderCard;
+      renderCard();
+    }
+
+    function escHtml(s) {
+      return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    function attachEvents(el, date, isReadOnly, renderCard) {
+      let dragSrcIdx = null;
+
+      el.addEventListener('click', function (e) {
+        const action = e.target.closest('[data-action]');
+        if (!action) return;
+        const act = action.dataset.action;
+        const id = action.dataset.id;
+
+        if (act === 'toggle') { App.goals.toggle(date, id); return; }
+        if (act === 'delete') { App.goals.delete(date, id); return; }
+        if (act === 'queue')  { App.goals.toggleQueue(date, id); return; }
+        if (act === 'add')    {
+          const inp = el.querySelector('.todo-add-input');
+          if (inp && inp.value.trim()) { App.goals.add(date, inp.value); inp.value = ''; inp.focus(); }
+          return;
+        }
+        if (act === 'polish') {
+          const inp = el.querySelector('.todo-add-input');
+          if (inp && inp.value.trim() && typeof App.ai !== 'undefined') {
+            App.ai.polishGoal(inp.value).then(t => { inp.value = t; }).catch(() => {});
+          }
+          return;
+        }
+        if (act === 'push') {
+          const tomorrow = App.dates.addDays(App.dates.today(), 1);
+          App.goals.pushRemaining(date, tomorrow);
+          return;
+        }
+        if (act === 'expand') { el._expanded = true; renderCard(); return; }
+        if (act === 'collapse') { el._expanded = false; renderCard(); return; }
+        if (act === 'edit') {
+          const row = action.closest('.goal-row');
+          const span = row && row.querySelector('.goal-text');
+          if (!span) return;
+          const id = action.dataset.id;
+          const originalText = App.goals.get(date).find(g => g.id === id)?.text || '';
+          const input = document.createElement('input');
+          input.className = 'goal-text-input';
+          input.value = originalText;
+          span.replaceWith(input);
+          input.focus();
+          input.select();
+          function commit() {
+            const newText = input.value.trim();
+            if (newText && newText !== originalText) App.goals.updateText(date, id, newText);
+            else renderCard();
+          }
+          input.addEventListener('blur', commit);
+          input.addEventListener('keydown', e => {
+            if (e.key === 'Enter') commit();
+            if (e.key === 'Escape') renderCard();
+          });
+        }
+      });
+
+      el.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') {
+          const inp = e.target.closest('.todo-add-input');
+          if (inp && inp.value.trim()) { App.goals.add(date, inp.value); inp.value = ''; }
+        }
+      });
+
+      // Drag and drop for reorder
+      el.addEventListener('dragstart', function (e) {
+        const row = e.target.closest('.goal-row');
+        if (!row) return;
+        dragSrcIdx = parseInt(row.dataset.idx, 10);
+        row.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+      });
+      el.addEventListener('dragend', function (e) {
+        el.querySelectorAll('.goal-row').forEach(r => r.classList.remove('dragging', 'drag-over'));
+      });
+      el.addEventListener('dragover', function (e) {
+        const row = e.target.closest('.goal-row');
+        if (!row) return;
+        e.preventDefault();
+        el.querySelectorAll('.goal-row').forEach(r => r.classList.remove('drag-over'));
+        row.classList.add('drag-over');
+      });
+      el.addEventListener('drop', function (e) {
+        e.preventDefault();
+        const row = e.target.closest('.goal-row');
+        if (!row || dragSrcIdx === null) return;
+        const toIdx = parseInt(row.dataset.idx, 10);
+        if (!isNaN(toIdx)) App.goals.reorder(date, dragSrcIdx, toIdx);
+        dragSrcIdx = null;
+      });
+    }
+
+    function init() {
+      const active = App.dates.activeDate();
+      const tomorrow = App.dates.addDays(App.dates.today(), 1);
+      makeTodoCard(active, { isTomorrow: false });
+      makeTodoCard(tomorrow, { isTomorrow: true });
+
+      App.bus.on('goals-changed', ({ date }) => {
+        const todayEl = document.getElementById('todo-today');
+        const tmrwEl  = document.getElementById('todo-tomorrow');
+        if (todayEl && todayEl._render) todayEl._render();
+        if (tmrwEl  && tmrwEl._render)  tmrwEl._render();
+      });
+    }
+
+    return { init };
+  })();
+
+  /* ============================================================
+     PHASE 2 — INIT REGISTRATION
+  ============================================================ */
+
+  App.registerInit(function () {
+    App.goals.rollover();
+    App.goalTicker.init();
+    App.dayRing.init();
+    App.todoList.init();
+  });
+
+  /* ============================================================
+     BOOT
+  ============================================================ */
+
   App.boot = function () {
-    // Settings gear: reset-all-data confirm (Phase 3 will replace with a proper menu)
     const gear = document.getElementById('settings-gear');
     if (gear) {
       gear.addEventListener('click', function () {
         const ok = window.confirm('Reset all dashboard data? This cannot be undone.');
-        if (ok) {
-          App.storage.clearAll();
-          window.location.reload();
-        }
+        if (ok) { App.storage.clearAll(); window.location.reload(); }
       });
     }
-
-    for (const fn of App.initFns) {
-      try { fn(); } catch (e) { console.error('[init]', e); }
-    }
+    for (const fn of App.initFns) { try { fn(); } catch (e) { console.error('[init]', e); } }
   };
 
   if (document.readyState === 'loading') {
