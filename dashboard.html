@@ -939,11 +939,202 @@
   .mh-journal::placeholder { color: var(--text-tertiary); }
   .mh-journal:focus { border-color: rgba(255,255,255,0.18); }
 
+  /* ============================================================
+     CHAT PANEL
+  ============================================================ */
+  #chat-toggle {
+    transition: background 0.2s, color 0.2s, opacity 0.2s;
+    opacity: 1;
+  }
+  #chat-toggle.panel-open {
+    background: rgba(255,255,255,0.1);
+    color: var(--text-primary);
+    border-color: rgba(255,255,255,0.15);
+    opacity: 1;
+  }
+  .chat-panel-wrap {
+    position: fixed;
+    bottom: 64px;
+    right: 20px;
+    width: 360px;
+    height: 500px;
+    background: rgba(14,14,18,0.98);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 -4px 48px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    transform: translateY(20px) scale(0.97);
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1), opacity 0.2s ease;
+    z-index: 50;
+  }
+  .chat-panel-wrap.open {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+    pointer-events: all;
+  }
+  .chat-header {
+    padding: 14px 16px 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+  .chat-header-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+  .chat-header-sub {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    margin-top: 1px;
+  }
+  .chat-clear-btn {
+    background: none;
+    border: none;
+    font-size: 11px;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    padding: 3px 6px;
+    border-radius: 4px;
+    transition: color 0.15s;
+  }
+  .chat-clear-btn:hover { color: var(--danger); }
+  .chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    scroll-behavior: smooth;
+  }
+  .chat-messages::-webkit-scrollbar { width: 4px; }
+  .chat-messages::-webkit-scrollbar-track { background: transparent; }
+  .chat-messages::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 2px; }
+  .chat-bubble {
+    max-width: 88%;
+    padding: 9px 13px;
+    border-radius: 12px;
+    font-size: 13px;
+    line-height: 1.55;
+    word-break: break-word;
+  }
+  .chat-bubble.user {
+    background: rgba(255,255,255,0.09);
+    color: var(--text-primary);
+    align-self: flex-end;
+    border-bottom-right-radius: 4px;
+  }
+  .chat-bubble.assistant {
+    background: rgba(107,227,164,0.07);
+    border: 1px solid rgba(107,227,164,0.12);
+    color: var(--text-secondary);
+    align-self: flex-start;
+    border-bottom-left-radius: 4px;
+  }
+  .chat-bubble.typing {
+    background: rgba(255,255,255,0.04);
+    color: var(--text-tertiary);
+    align-self: flex-start;
+    font-style: italic;
+    font-size: 12px;
+  }
+  .typing-dots span {
+    display: inline-block;
+    width: 4px; height: 4px;
+    border-radius: 50%;
+    background: var(--text-tertiary);
+    margin: 0 1px;
+    animation: dot-bounce 1.2s infinite;
+  }
+  .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes dot-bounce {
+    0%,60%,100% { transform: translateY(0); }
+    30%          { transform: translateY(-5px); }
+  }
+  .chat-empty {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    color: var(--text-tertiary);
+    text-align: center;
+    padding: 20px;
+  }
+  .chat-input-row {
+    display: flex;
+    gap: 8px;
+    padding: 10px 12px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    flex-shrink: 0;
+  }
+  .chat-textarea {
+    flex: 1;
+    font-family: inherit;
+    font-size: 13px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    color: var(--text-primary);
+    padding: 8px 12px;
+    resize: none;
+    outline: none;
+    max-height: 100px;
+    overflow-y: auto;
+    transition: border-color 0.15s;
+    line-height: 1.5;
+  }
+  .chat-textarea::placeholder { color: var(--text-tertiary); }
+  .chat-textarea:focus { border-color: rgba(255,255,255,0.18); }
+  .chat-send-btn {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    border: none;
+    background: rgba(255,255,255,0.1);
+    color: var(--text-primary);
+    font-size: 15px;
+    cursor: pointer;
+    align-self: flex-end;
+    transition: background 0.15s;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .chat-send-btn:hover { background: rgba(255,255,255,0.16); }
+  .chat-send-btn:disabled { opacity: 0.35; cursor: default; }
+
+  /* ============================================================
+     RESPONSIVE — FINAL PASS (375px)
+  ============================================================ */
   @media (max-width: 600px) {
     .timelog-input-row { grid-template-columns: 1fr 1fr; }
     .timelog-input-row .timelog-log-btn { grid-column: 1/-1; }
     .fitness-log-grid { grid-template-columns: 1fr; }
     .fitness-summary { gap: 12px; }
+    .chat-panel-wrap { width: calc(100vw - 24px); right: 12px; bottom: 72px; }
+    .ring-svg-wrap { width: 130px; height: 130px; }
+    .todo-add-row { flex-wrap: wrap; }
+    .todo-add-row .todo-add-btn.polish { display: none; }
+    .coaching-banner { gap: 10px; }
+    .fitness-summary { flex-wrap: wrap; }
+    .mh-history-row { gap: 4px; }
+  }
+  @media (max-width: 375px) {
+    .container { padding: 16px 12px; }
+    h1.page-title { font-size: 22px; }
+    .todo-big-progress { font-size: 26px; }
+    .chat-panel-wrap { width: calc(100vw - 16px); right: 8px; }
+    .emoji-row .emoji-btn, .mh-emoji-btn { padding: 8px 2px; font-size: 18px; }
+    .choice-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+    .modal-card { padding: 20px 16px; }
   }
 </style>
 </head>
@@ -2555,6 +2746,258 @@
 
   App.registerInit(function () {
     App.coachingBanner.init();
+  });
+
+  /* ============================================================
+     PHASE 6 — CHAT PANEL
+  ============================================================ */
+
+  App.chat = (function () {
+    const MAX_HISTORY = 50;
+    let isOpen = false;
+    let isStreaming = false;
+    let panelEl = null;
+
+    function getHistory() { return App.storage.get('chat_history', []); }
+    function saveHistory(h) { App.storage.set('chat_history', h.slice(-MAX_HISTORY)); }
+
+    function addMessage(role, content) {
+      const h = getHistory();
+      h.push({ role, content, ts: Date.now() });
+      saveHistory(h);
+      return h;
+    }
+
+    function buildSystem() {
+      const profile = App.storage.get('user_profile', {});
+      const active  = App.dates.activeDate();
+      const ci      = App.storage.get(`checkin:${active}`, {});
+      const mh      = App.storage.get(`mental:${active}`, {});
+      const { total, done } = App.goals.stats(active);
+      const mood = mh.mood || ci.mood || 3;
+      const tone = mood <= 2 ? 'gentle and supportive' : mood <= 4 ? 'balanced and encouraging' : 'intense and demanding';
+      return `You are an adaptive personal coach. Be ${tone}. Push the user to take action — be concise. User: ${profile.name||''}. Focus: ${profile.focus||''}. Today's mood: ${mood}/6. Goals: ${done}/${total} done. Obstacle: ${profile.obstacle||''}. Best self: ${profile.bestSelf||''}.`;
+    }
+
+    function scrollBottom() {
+      const msgs = panelEl && panelEl.querySelector('.chat-messages');
+      if (msgs) msgs.scrollTop = msgs.scrollHeight;
+    }
+
+    function renderMessages() {
+      if (!panelEl) return;
+      const msgs = panelEl.querySelector('.chat-messages');
+      if (!msgs) return;
+      const history = getHistory();
+      if (!history.length) {
+        msgs.innerHTML = '<div class="chat-empty">Ask your coach anything — goals, habits, motivation, plans.</div>';
+        return;
+      }
+      msgs.innerHTML = history.map(m =>
+        `<div class="chat-bubble ${m.role}">${escHtml(m.content)}</div>`
+      ).join('');
+      scrollBottom();
+    }
+
+    function escHtml(s) {
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    async function sendMessage(text) {
+      if (!text.trim() || isStreaming) return;
+      text = text.trim();
+      addMessage('user', text);
+      renderMessages();
+
+      const sendBtn = panelEl && panelEl.querySelector('.chat-send-btn');
+      const textarea = panelEl && panelEl.querySelector('.chat-textarea');
+      if (sendBtn) sendBtn.disabled = true;
+      if (textarea) { textarea.value = ''; textarea.style.height = ''; }
+      isStreaming = true;
+
+      // Add typing indicator
+      const msgs = panelEl && panelEl.querySelector('.chat-messages');
+      const typingEl = document.createElement('div');
+      typingEl.className = 'chat-bubble typing';
+      typingEl.innerHTML = '<span class="typing-dots"><span></span><span></span><span></span></span>';
+      if (msgs) { msgs.appendChild(typingEl); scrollBottom(); }
+
+      if (!App.config.hasApiKey()) {
+        await new Promise(r => setTimeout(r, 800));
+        typingEl.remove();
+        const fallback = "Add your Anthropic API key to get real coaching responses. For now — just take one action on your top goal right now.";
+        addMessage('assistant', fallback);
+        renderMessages();
+        isStreaming = false;
+        if (sendBtn) sendBtn.disabled = false;
+        return;
+      }
+
+      try {
+        const history = getHistory().filter(m => m.role === 'user' || m.role === 'assistant');
+        const messages = history.slice(-20).map(m => ({ role: m.role, content: m.content }));
+        const system = buildSystem();
+
+        // Streaming fetch
+        const resp = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': App.config.ANTHROPIC_API_KEY,
+            'anthropic-version': '2023-06-01',
+            'anthropic-dangerous-direct-browser-access': 'true',
+          },
+          body: JSON.stringify({
+            model: App.config.MODEL_DEEP,
+            max_tokens: 400,
+            stream: true,
+            system,
+            messages,
+          }),
+        });
+
+        typingEl.remove();
+
+        // Stream into a live bubble
+        const bubble = document.createElement('div');
+        bubble.className = 'chat-bubble assistant';
+        bubble.textContent = '';
+        if (msgs) msgs.appendChild(bubble);
+
+        const reader = resp.body.getReader();
+        const decoder = new TextDecoder();
+        let buf = '', full = '';
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buf += decoder.decode(value, { stream: true });
+          const lines = buf.split('\n');
+          buf = lines.pop();
+          for (const line of lines) {
+            if (!line.startsWith('data: ')) continue;
+            const data = line.slice(6).trim();
+            if (data === '[DONE]') break;
+            try {
+              const parsed = JSON.parse(data);
+              if (parsed.type === 'content_block_delta' && parsed.delta?.text) {
+                full += parsed.delta.text;
+                bubble.textContent = full;
+                scrollBottom();
+              }
+            } catch {}
+          }
+        }
+
+        if (full) addMessage('assistant', full);
+        else { bubble.remove(); }
+
+      } catch (e) {
+        typingEl.remove();
+        const errBubble = document.createElement('div');
+        errBubble.className = 'chat-bubble assistant';
+        errBubble.textContent = 'Something went wrong. Check your API key and try again.';
+        if (msgs) msgs.appendChild(errBubble);
+      }
+
+      isStreaming = false;
+      if (sendBtn) sendBtn.disabled = false;
+      scrollBottom();
+    }
+
+    function buildPanel() {
+      if (panelEl) return;
+      panelEl = document.createElement('div');
+      panelEl.className = 'chat-panel-wrap';
+      panelEl.innerHTML = `
+        <div class="chat-header">
+          <div>
+            <div class="chat-header-title">💬 Coach</div>
+            <div class="chat-header-sub">Adaptive personal coaching</div>
+          </div>
+          <button class="chat-clear-btn" id="chat-clear">Clear</button>
+        </div>
+        <div class="chat-messages"></div>
+        <div class="chat-input-row">
+          <textarea class="chat-textarea" rows="1" placeholder="Ask your coach…" id="chat-input"></textarea>
+          <button class="chat-send-btn" id="chat-send" title="Send">↑</button>
+        </div>`;
+      document.body.appendChild(panelEl);
+
+      renderMessages();
+
+      panelEl.querySelector('#chat-send').addEventListener('click', () => {
+        const ta = panelEl.querySelector('#chat-input');
+        if (ta) sendMessage(ta.value);
+      });
+
+      panelEl.querySelector('#chat-input').addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          sendMessage(this.value);
+        }
+        // Auto-resize
+        setTimeout(() => {
+          this.style.height = '';
+          this.style.height = Math.min(this.scrollHeight, 100) + 'px';
+        }, 0);
+      });
+
+      panelEl.querySelector('#chat-clear').addEventListener('click', () => {
+        if (confirm('Clear chat history?')) { saveHistory([]); renderMessages(); }
+      });
+    }
+
+    function toggle() {
+      isOpen = !isOpen;
+      if (isOpen) buildPanel();
+      const btn = document.getElementById('chat-toggle');
+      if (panelEl) panelEl.classList.toggle('open', isOpen);
+      if (btn) { btn.textContent = isOpen ? '✕ Close' : '💬 Coach'; btn.classList.toggle('panel-open', isOpen); }
+      if (isOpen) setTimeout(() => { const ta = panelEl && panelEl.querySelector('#chat-input'); if (ta) ta.focus(); }, 280);
+    }
+
+    function init() {
+      const btn = document.getElementById('chat-toggle');
+      if (btn) btn.addEventListener('click', toggle);
+      // Replace the chat aside placeholder
+      const aside = document.getElementById('chat-panel');
+      if (aside) aside.remove();
+    }
+
+    return { init };
+  })();
+
+  /* ============================================================
+     PHASE 6 — FIX SECTION TITLES
+  ============================================================ */
+
+  // Patch todoList to prefix "To Do List" section header on the today card
+  (function patchTodoTitle() {
+    const _orig = App.todoList.init;
+    App.todoList.init = function () {
+      _orig.call(this);
+      // The spec requires section title reads exactly "To Do List"
+      // The today eyebrow already uses getDateLabel; we prepend via section label
+      const todayEl = document.getElementById('todo-today');
+      if (todayEl) {
+        const existingLabel = todayEl.querySelector('.todo-eyebrow');
+        if (existingLabel) {
+          const wrap = document.createElement('div');
+          wrap.className = 'section-eyebrow';
+          wrap.textContent = 'To Do List';
+          todayEl.insertBefore(wrap, todayEl.firstChild);
+        }
+      }
+    };
+  })();
+
+  /* ============================================================
+     PHASE 6 — INIT REGISTRATION
+  ============================================================ */
+
+  App.registerInit(function () {
+    App.chat.init();
   });
 
   /* ============================================================
